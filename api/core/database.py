@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from app.core.config import settings
+from api.core.config import settings
 
 # Create an asynchronous SQLAlchemy engine.
 # This engine is responsible for connecting to the database specified in DATABASE_URL from settings.
@@ -11,6 +11,7 @@ engine = create_async_engine(settings.DATABASE_URL)
 # `autocommit=False` and `autoflush=False` ensure that transactions are managed explicitly.
 # `bind=engine` links this session maker to our asynchronous database engine.
 SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 # Dependency for getting an asynchronous database session.
 # This `get_db` function is designed to be used with FastAPI's dependency injection system.
@@ -26,3 +27,4 @@ async def get_db():
             # Ensure the session is closed after the request is finished,
             # releasing the database connection.
             await session.close()
+

@@ -3,10 +3,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.schema import UserMailAccount, OAuthToken
-from app.repositories.base import BaseRepository
-from app.auth.schemas import UserInfo, TokenData
-from app.models.enums import Provider
+from api.models.schema import UserMailAccount, OAuthToken
+from api.repositories.base import BaseRepository
+from api.auth.schemas import UserInfo, TokenData
+from api.models.enums import Provider
 
 
 class UserMailAccountRepository(BaseRepository):

@@ -3,29 +3,29 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Import base OAuth classes and provider-specific client getters.
-from app.auth.base import (
+from api.auth.base import (
     BaseOAuth2,
     get_google_oauth_client,
     get_microsoft_oauth_client,
 )
 
 # Import Pydantic schemas for authentication responses and data transfer.
-from app.auth.schemas import AuthResponse, TokenData, UserInfo
+from api.auth.schemas import AuthResponse, TokenData, UserInfo
 
 # Import database dependency.
-from app.core.database import get_db
+from api.core.database import get_db
 
 # Import the repository for user mail account operations.
-from app.repositories.user_mail_account import UserMailAccountRepository
+from api.repositories.user_mail_account import UserMailAccountRepository
 
 # Import the Provider enum for distinguishing OAuth providers.
-from app.models.enums import Provider
+from api.models.enums import Provider
 
 # Initialize an API router specifically for authentication routes.
 # All routes defined in this router will be prefixed with "/auth" and tagged for documentation.
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-# A dictionary mapping provider names (strings) to their respective OAuth client getters
+# A dictionary mapiing provider names (strings) to their respective OAuth client getters
 # and the corresponding Provider enum value. This allows for dynamic selection of OAuth clients.
 PROVIDER_MAP = {
     "google": {
@@ -48,7 +48,7 @@ async def login(provider: str, request: Request):
     if provider not in PROVIDER_MAP:
         raise HTTPException(status_code=404, detail="Provider not found")
 
-    # Get the appropriate OAuth client based on the provider.
+    # Get the apiropriate OAuth client based on the provider.
     oauth_client: BaseOAuth2 = PROVIDER_MAP[provider]["client"]()
     # Generate the authorization URL for the OAuth provider.
     login_url = oauth_client.get_login_url(request)
@@ -57,7 +57,7 @@ async def login(provider: str, request: Request):
 
 
 # Defines the callback endpoint for a given OAuth provider.
-# After a user authorizes the application on the OAuth provider's side, they are redirected
+# After a user authorizes the apilication on the OAuth provider's side, they are redirected
 # back to this endpoint with authorization `code` and `state` parameters.
 @router.get("/{provider}/callback")
 async def callback(
@@ -81,7 +81,7 @@ async def callback(
     del request.session["state"]
 
     try:
-        # Get the appropriate OAuth client based on the provider.
+        # Get the apiropriate OAuth client based on the provider.
         oauth_client: BaseOAuth2 = PROVIDER_MAP[provider]["client"]()
         # Exchange the authorization code for access and refresh tokens.
         token_payload = await oauth_client.exchange_code_for_tokens(code)

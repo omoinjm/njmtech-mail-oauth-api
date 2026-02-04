@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import secrets
 import httpx
-from app.core.config import settings
+from api.core.config import settings
 
 
 class BaseOAuth2(ABC):

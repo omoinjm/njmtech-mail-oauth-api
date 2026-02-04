@@ -9,4 +9,3 @@ class Provider(Enum):
     GOOGLE = 0
     # Represents Microsoft as an OAuth provider.
     MICROSOFT = 1
-
