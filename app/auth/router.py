@@ -8,12 +8,16 @@ from app.auth.base import (
     get_google_oauth_client,
     get_microsoft_oauth_client,
 )
+
 # Import Pydantic schemas for authentication responses and data transfer.
 from app.auth.schemas import AuthResponse, TokenData, UserInfo
+
 # Import database dependency.
 from app.core.database import get_db
+
 # Import the repository for user mail account operations.
 from app.repositories.user_mail_account import UserMailAccountRepository
+
 # Import the Provider enum for distinguishing OAuth providers.
 from app.models.enums import Provider
 
@@ -26,10 +30,10 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 PROVIDER_MAP = {
     "google": {
         "client": get_google_oauth_client,  # Function to get the Google OAuth client instance
-        "provider_enum": Provider.GOOGLE,     # Enum value for Google provider
+        "provider_enum": Provider.GOOGLE,  # Enum value for Google provider
     },
     "microsoft": {
-        "client": get_microsoft_oauth_client, # Function to get the Microsoft OAuth client instance
+        "client": get_microsoft_oauth_client,  # Function to get the Microsoft OAuth client instance
         "provider_enum": Provider.MICROSOFT,  # Enum value for Microsoft provider
     },
 }
@@ -61,7 +65,7 @@ async def callback(
     request: Request,
     code: str,
     state: str,
-    db: AsyncSession = Depends(get_db), # Inject an asynchronous database session.
+    db: AsyncSession = Depends(get_db),  # Inject an asynchronous database session.
 ) -> AuthResponse:
     # Check if the requested provider is supported.
     if provider not in PROVIDER_MAP:
@@ -85,10 +89,13 @@ async def callback(
         # Extract token details from the payload.
         access_token = token_payload.get("access_token")
         refresh_token = token_payload.get("refresh_token")
-        expires_in = token_payload.get("expires_in")
+        original_expires_in = token_payload.get("expires_in")
+
+        # Define the effective token expiry to be 24 hours (86400 seconds).
+        effective_expires_in_seconds = 86400
 
         # Validate that essential token information is present.
-        if not access_token or not expires_in:
+        if not access_token or not original_expires_in:
             raise HTTPException(
                 status_code=400, detail=f"Invalid token data from {provider}"
             )
@@ -116,7 +123,7 @@ async def callback(
         token_data = TokenData(
             access_token=access_token,
             refresh_token=refresh_token,
-            expires_at=expires_in, # Note: `expires_at` here is actually `expires_in` seconds
+            expires_at=effective_expires_in_seconds,  # Now correctly uses the desired 24-hour expiry
         )
 
         # Initialize the UserMailAccountRepository to interact with the database.
@@ -138,3 +145,4 @@ async def callback(
             status_code=500,
             detail=f"An unexpected error occurred during {provider} OAuth callback: {e}",
         )
+
