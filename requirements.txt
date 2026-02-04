@@ -9,3 +9,10 @@ pydantic
 pydantic-settings
 google-auth-httplib2
 google-api-python-client
+pytest
+requests
+aiosqlite
+psycopg2-binary
+cryptography
+starlette
+itsdangerous

@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     MICROSOFT_CLIENT_ID: str
     MICROSOFT_CLIENT_SECRET: str
     MICROSOFT_REDIRECT_URI: str
+    SECRET_KEY: str
 
     model_config = SettingsConfigDict(env_file=".env")
 
