@@ -145,4 +145,3 @@ async def callback(
             status_code=500,
             detail=f"An unexpected error occurred during {provider} OAuth callback: {e}",
         )
-

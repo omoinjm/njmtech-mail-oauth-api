@@ -1,6 +1,8 @@
 import datetime
+import uuid
 from sqlalchemy import String, Boolean, DateTime, ForeignKey, func, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import Base
 
 
@@ -11,7 +13,9 @@ class UserMailAccount(Base):
     __tablename__ = "user_mail_accounts"
 
     # Primary key for the user mail account.
-    user_mail_account_id: Mapped[int] = mapped_column(primary_key=True)
+    user_mail_account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     # The email address associated with the account, must be unique.
     email_address_txt: Mapped[str] = mapped_column(
         String(255), unique=True, nullable=False
@@ -41,9 +45,11 @@ class OAuthToken(Base):
     __tablename__ = "oauth_tokens"
 
     # Primary key for the OAuth token record.
-    oauth_token_id: Mapped[int] = mapped_column(primary_key=True)
+    oauth_token_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     # Foreign key linking this token to a `UserMailAccount`.
-    user_mail_account_id: Mapped[int] = mapped_column(
+    user_mail_account_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user_mail_accounts.user_mail_account_id"), nullable=False
     )
     # The access token obtained from the OAuth provider.

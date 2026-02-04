@@ -1,10 +1,12 @@
 import datetime
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.schema import UserMailAccount, OAuthToken
 from app.repositories.base import BaseRepository
 from app.auth.schemas import UserInfo, TokenData
+from app.models.enums import Provider
 
 
 class UserMailAccountRepository(BaseRepository):
@@ -12,7 +14,11 @@ class UserMailAccountRepository(BaseRepository):
         super().__init__(session)
 
     async def get_by_email(self, email: str) -> UserMailAccount | None:
-        stmt = select(UserMailAccount).where(UserMailAccount.email_address_txt == email)
+        stmt = (
+            select(UserMailAccount)
+            .where(UserMailAccount.email_address_txt == email)
+            .options(selectinload(UserMailAccount.oauth_token))
+        )
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
@@ -21,19 +27,30 @@ class UserMailAccountRepository(BaseRepository):
     ) -> UserMailAccount:
         user = await self.get_by_email(user_info.email)
 
-        expires_at = datetime.datetime.utcnow() + datetime.timedelta(
-            seconds=token_data.expires_at
-        )
+        expires_at = (
+            datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(seconds=token_data.expires_at)
+        ).replace(tzinfo=None)
 
         if user:
-            # Check if the provider matches the existing user's provider
-            if user.provider_cd != provider:
+            # Convert stored provider code to enum
+            user_provider = Provider(user.provider_cd)
+            req_provider = Provider(provider)
+
+            # Ensure `provider` is also a Provider enum
+            # (if it's coming in as a string or int, normalize it first)
+            if user_provider.name != req_provider.name:
                 raise ValueError(
-                    f"Email '{user_info.email}' is already registered with provider '{user.provider_cd}'. Cannot register with '{provider}'."
+                    f"Email '{user_info.email}' is already registered with provider "
+                    f"'{user_provider.name}'. Cannot register with '{req_provider.name}'."
                 )
 
             # Update existing user's token
-            token = user.oauth_token[0]
+            token = user.oauth_token
+
+            if not token:
+                raise RuntimeError("User exists but has no OAuth token")
+
             token.access_token_txt = token_data.access_token
             if token_data.refresh_token:
                 token.refresh_token_txt = token_data.refresh_token
